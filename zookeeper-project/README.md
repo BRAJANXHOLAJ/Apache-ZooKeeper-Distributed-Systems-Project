@@ -1,18 +1,18 @@
 
 
- 📦 Apache ZooKeeper Distributed Systems Project
+ Apache ZooKeeper Distributed Systems Project
 
 
 
 Programim në Sistemet e Shpërndara
 
-🎯 Tema
+ Tema
 
 Implementimi i disa mekanizmave të koordinimit të sistemeve të shpërndara duke përdorur Apache ZooKeeper.
 
 
 
- 🧠 Përmbledhje
+  Përmbledhje
 
 Ky projekt demonstron përdorimin praktik të ZooKeeper për ndërtimin e:
 
@@ -26,7 +26,7 @@ Sistemi është ndërtuar në **Java (Maven project)** dhe përdor API-të nativ
 
 
 
-#🏗️ Struktura e Projektit
+ Struktura e Projektit
 
 src/
  └── main/java/org/example/
@@ -40,7 +40,7 @@ resources/
 
 
 
-# ⚙️ Kërkesat
+#  Kërkesat
 
 * Java 17+ (projekti përdor Java 22)
 * Maven
@@ -48,7 +48,7 @@ resources/
 
 
 
-# 🚀 Setup & Ekzekutimi
+#  Setup & Ekzekutimi
 
 ## 1. Start ZooKeeper Cluster (3 nodes)
 
@@ -89,9 +89,9 @@ java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
 
 
 
-# 📡 1. Cluster Node Monitoring
+#  1. Cluster Node Monitoring
 
-## 🔧 Implementimi
+##  Implementimi
 
 * Përdor **ephemeral znodes** në `/cluster`
 * Çdo node regjistrohet si:
@@ -101,7 +101,7 @@ java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
 /cluster/nyja-2
 
 
-## 📊 Funksionaliteti
+##  Funksionaliteti
 
 * Monitoron:
 
@@ -109,7 +109,7 @@ java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
   * Node failure
 * Përdor **watchers (NodeChildrenChanged)**
 
-## ⚠️ Failure Handling
+##  Failure Handling
 
 * Nëse node bie:
   → ephemeral node fshihet automatikisht
@@ -117,7 +117,7 @@ java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
 
 
 
-# 🔒 2. Distributed Locking
+#  2. Distributed Locking
 
 ## 🔧 Implementimi
 
@@ -135,19 +135,19 @@ Shembull:
 /lock/kerkese-00000002
 
 
-## ⚙️ Algoritmi
+##  Algoritmi
 
 1. Klienti krijon nyje
 2. Kontrollon renditjen
 3. Nëse është i pari → fiton lock
 4. Nëse jo → pret nyjen paraardhëse
 
-## ✅ Garanton
+##  Garanton
 
 * Mutual exclusion
 * Fair ordering (FIFO)
 
-## ⚠️ Edge Cases
+##  Edge Cases
 
 * Crash i klientit → lock lirohet automatikisht
 * Race conditions → shmangen me sequential nodes
@@ -171,20 +171,20 @@ EPHEMERAL_SEQUENTIAL
   * lexon elementin më të vogël
   * e fshin pas procesimit
 
-## 📦 Shembull
+##  Shembull
 
 ```bash
 /queue/item-00000001
 /queue/item-00000002
 ```
 
-## ✅ Garanton
+##  Garanton
 
 * FIFO ordering
 * Multiple producers & consumers
 * No duplication
 
-## 🧪 Testime
+##  Testime
 
 * Concurrent producers
 * Concurrent consumers
@@ -193,9 +193,9 @@ EPHEMERAL_SEQUENTIAL
 
 ---
 
-# 💬 4. (BONUS) Group Messaging
+#  4. (BONUS) Group Messaging
 
-## 🔧 Implementimi
+##  Implementimi
 
 * Path:
 
@@ -204,35 +204,35 @@ EPHEMERAL_SEQUENTIAL
 /groups/group1/messages/
 ```
 
-## ⚙️ Funksionaliteti
+##  Funksionaliteti
 
 * Dynamic membership (ephemeral nodes)
 * Broadcasting me watchers
 
-## 📡 Mekanizmi
+##  Mekanizmi
 
 * Çdo client dëgjon `/messages`
 * Mesazhet shpërndahen në kohë reale
 
 ---
 
-# ♻️ 5. (BONUS) System Recovery
+#  5. (BONUS) System Recovery
 
-## 🔧 Mekanizmat
+##  Mekanizmat
 
-### ✔ Leader Election
+###  Leader Election
 
 * Automatic (ZooKeeper quorum)
 
-### ✔ Data Replication
+###  Data Replication
 
 * State replikohet në cluster
 
-### ✔ Failover
+###  Failover
 
 * Client reconnect automatik
 
-### ✔ Network Partition
+###  Network Partition
 
 * Vetëm majority partition funksionon
 
@@ -249,7 +249,7 @@ EPHEMERAL_SEQUENTIAL
 
 ---
 
-# ⚖️ Trade-offs
+#  Trade-offs
 
 * Consistency > Availability (CAP theorem)
 * Latency pak më e lartë për shkak të quorum
@@ -257,7 +257,7 @@ EPHEMERAL_SEQUENTIAL
 
 ---
 
-# ❓ Pyetje të Mundshme në Mbrojtje
+#  Pyetje të Mundshme në Mbrojtje
 
 * Pse ZooKeeper dhe jo database?
 * Si garanton mutual exclusion?
@@ -274,7 +274,7 @@ EPHEMERAL_SEQUENTIAL
 
 ---
 
-# ✅ Statusi
+#  Statusi
 
 ✔ Core tasks të implementuara
 ✔ Bonus tasks të implementuara
