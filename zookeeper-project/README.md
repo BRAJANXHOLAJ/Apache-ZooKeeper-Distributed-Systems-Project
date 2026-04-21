@@ -1,33 +1,32 @@
+# Apache ZooKeeper Distributed Systems Project
 
-
- Apache ZooKeeper Distributed Systems Project
-
-
+## Course
 
 Programim në Sistemet e Shpërndara
 
- Tema
+## Topic
 
-Implementimi i disa mekanizmave të koordinimit të sistemeve të shpërndara duke përdorur Apache ZooKeeper.
+Implementation of distributed coordination mechanisms using Apache ZooKeeper.
 
+---
 
+## Overview
 
-  Përmbledhje
-
-Ky projekt demonstron përdorimin praktik të ZooKeeper për ndërtimin e:
+This project demonstrates the use of ZooKeeper as a coordination service for building distributed system primitives. The implementation includes:
 
 * Cluster Node Monitoring
 * Distributed Locking
 * Distributed Queue
-* (Bonus) Group Messaging
-* (Bonus) System Recovery
+* Group Messaging (Bonus)
+* System Recovery (Bonus)
 
-Sistemi është ndërtuar në **Java (Maven project)** dhe përdor API-të native të ZooKeeper.
+The system is implemented in Java using the native ZooKeeper API and managed as a Maven project.
 
+---
 
+## Project Structure
 
- Struktura e Projektit
-
+```
 src/
  └── main/java/org/example/
      ├── App.java
@@ -36,247 +35,224 @@ src/
      ├── DistributedQueue.java
 resources/
  └── simplelogger.properties
-
-
-
-
-#  Kërkesat
-
-* Java 17+ (projekti përdor Java 22)
-* Maven
-* ZooKeeper cluster (3 nodes)
-
-
-
-#  Setup & Ekzekutimi
-
-## 1. Start ZooKeeper Cluster (3 nodes)
-
-
-localhost:2181
-localhost:2182
-localhost:2183
-
-
-(Mund të përdoret Docker ose instalim manual)
-
-
-
-## 2. Build projekti
-
-mvn clean install
-
-
-## 3. Run modulet
-
-### 🔹 Cluster Monitoring
-
-
-java -cp target/untitled-1.0-SNAPSHOT.jar org.example.ClusterMonitor
-
-
-### 🔹 Distributed Lock
-
-
-java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedLock
-
-
-### 🔹 Distributed Queue
-
-
-java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
-
-
-
-
-#  1. Cluster Node Monitoring
-
-##  Implementimi
-
-* Përdor **ephemeral znodes** në `/cluster`
-* Çdo node regjistrohet si:
-
-
-/cluster/nyja-1
-/cluster/nyja-2
-
-
-##  Funksionaliteti
-
-* Monitoron:
-
-  * Node join
-  * Node failure
-* Përdor **watchers (NodeChildrenChanged)**
-
-##  Failure Handling
-
-* Nëse node bie:
-  → ephemeral node fshihet automatikisht
-  → sistemi detekton failure në kohë reale
-
-
-
-#  2. Distributed Locking
-
-## 🔧 Implementimi
-
-* Path: `/lock`
-* Çdo klient krijon:
-
-
-EPHEMERAL_SEQUENTIAL node
-
-
-Shembull:
-
-
-/lock/kerkese-00000001
-/lock/kerkese-00000002
-
-
-##  Algoritmi
-
-1. Klienti krijon nyje
-2. Kontrollon renditjen
-3. Nëse është i pari → fiton lock
-4. Nëse jo → pret nyjen paraardhëse
-
-##  Garanton
-
-* Mutual exclusion
-* Fair ordering (FIFO)
-
-##  Edge Cases
-
-* Crash i klientit → lock lirohet automatikisht
-* Race conditions → shmangen me sequential nodes
-* Thundering herd → shmanget (watch vetëm predecessor)
+```
 
 ---
 
-# 📥 3. Distributed Queue
+## Requirements
 
-## 🔧 Implementimi
+* Java 17 or higher (project configured with Java 22)
+* Maven
+* ZooKeeper cluster with at least 3 nodes
 
-* Path: `/queue`
-* Producer:
+---
 
-```bash
-EPHEMERAL_SEQUENTIAL
+## Setup and Execution
+
+### 1. Start ZooKeeper Cluster
+
+Run three ZooKeeper instances:
+
+```
+localhost:2181
+localhost:2182
+localhost:2183
 ```
 
-* Consumer:
+---
 
-  * lexon elementin më të vogël
-  * e fshin pas procesimit
+### 2. Build the Project
 
-##  Shembull
+```
+mvn clean install
+```
 
-```bash
+---
+
+### 3. Run Modules
+
+#### Cluster Monitoring
+
+```
+java -cp target/untitled-1.0-SNAPSHOT.jar org.example.ClusterMonitor
+```
+
+#### Distributed Lock
+
+```
+java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedLock
+```
+
+#### Distributed Queue
+
+```
+java -cp target/untitled-1.0-SNAPSHOT.jar org.example.DistributedQueue
+```
+
+---
+
+## 1. Cluster Node Monitoring
+
+### Design
+
+* Uses a parent znode `/cluster`
+* Each node registers itself using an ephemeral znode
+
+Example:
+
+```
+/cluster/nyja-1
+/cluster/nyja-2
+/cluster/nyja-3
+```
+
+### Functionality
+
+* Detects node joins and failures
+* Uses ZooKeeper watchers (`NodeChildrenChanged`)
+* Maintains current cluster state
+
+### Failure Handling
+
+* When a node disconnects, its ephemeral znode is removed automatically
+* The monitoring service detects the change and updates the cluster status
+
+---
+
+## 2. Distributed Locking
+
+### Design
+
+* Lock path: `/lock`
+* Each client creates an ephemeral sequential znode
+
+Example:
+
+```
+/lock/kerkese-00000001
+/lock/kerkese-00000002
+```
+
+### Algorithm
+
+1. Client creates a sequential node
+2. Retrieves and sorts all lock nodes
+3. If it has the smallest sequence number, it acquires the lock
+4. Otherwise, it watches the node immediately before it
+
+### Properties
+
+* Guarantees mutual exclusion
+* Ensures fair ordering (FIFO)
+
+### Edge Case Handling
+
+* Client failure releases the lock automatically (ephemeral node deletion)
+* Race conditions avoided through sequential ordering
+* Avoids unnecessary notifications by watching only the predecessor node
+
+---
+
+## 3. Distributed Queue
+
+### Design
+
+* Queue path: `/queue`
+* Producers create sequential znodes
+* Consumers process elements in order
+
+Example:
+
+```
 /queue/item-00000001
 /queue/item-00000002
 ```
 
-##  Garanton
+### Functionality
 
-* FIFO ordering
-* Multiple producers & consumers
-* No duplication
+* FIFO ordering ensured through sequential nodes
+* Multiple producers and consumers supported
+* Each item is deleted after consumption
 
-##  Testime
+### Fault Tolerance
 
-* Concurrent producers
-* Concurrent consumers
-* Node failures
-* Retry mechanism (NoNodeException)
+* Handles concurrent access
+* Retries on conflicts (`NoNodeException`)
+* Remains consistent under node failures
 
 ---
 
-#  4. (BONUS) Group Messaging
+## 4. Group Messaging (Bonus)
 
-##  Implementimi
+### Design
 
-* Path:
-
-```bash
+```
 /groups/group1/members/
 /groups/group1/messages/
 ```
 
-##  Funksionaliteti
+### Functionality
 
-* Dynamic membership (ephemeral nodes)
-* Broadcasting me watchers
-
-##  Mekanizmi
-
-* Çdo client dëgjon `/messages`
-* Mesazhet shpërndahen në kohë reale
+* Dynamic group membership using ephemeral nodes
+* Message broadcasting through shared znodes
+* Clients receive updates via watchers
 
 ---
 
-#  5. (BONUS) System Recovery
+## 5. System Recovery (Bonus)
 
-##  Mekanizmat
+### Mechanisms
 
-###  Leader Election
+* Leader election handled automatically by ZooKeeper quorum
+* Data replication across nodes
+* Automatic client reconnection and session recovery
+* Majority-based operation under network partition
 
-* Automatic (ZooKeeper quorum)
+### Behavior Under Failure
 
-###  Data Replication
-
-* State replikohet në cluster
-
-###  Failover
-
-* Client reconnect automatik
-
-###  Network Partition
-
-* Vetëm majority partition funksionon
+* Node failures trigger automatic reconfiguration
+* Minority partitions become inactive to maintain consistency
 
 ---
 
-# 📊 Dizajni & Vendimet Kryesore
+## Design Decisions
 
-| Komponenti       | Arsyeja                       |
-| ---------------- | ----------------------------- |
-| Ephemeral nodes  | Detect failures automatikisht |
-| Sequential nodes | Ordering dhe locking          |
-| Watchers         | Event-driven system           |
-| 3-node cluster   | Fault tolerance (quorum)      |
-
----
-
-#  Trade-offs
-
-* Consistency > Availability (CAP theorem)
-* Latency pak më e lartë për shkak të quorum
-* ZooKeeper nuk përdoret për storage të madh
+| Component          | Rationale                    |
+| ------------------ | ---------------------------- |
+| Ephemeral nodes    | Automatic failure detection  |
+| Sequential nodes   | Ordering and synchronization |
+| Watchers           | Event-driven architecture    |
+| Three-node cluster | Fault tolerance via quorum   |
 
 ---
 
-#  Pyetje të Mundshme në Mbrojtje
+## Trade-offs
 
-* Pse ZooKeeper dhe jo database?
-* Si garanton mutual exclusion?
-* Çfarë ndodh në network partition?
-* Çfarë është quorum?
-* Ephemeral vs Persistent nodes?
+* Prioritizes consistency over availability (CAP theorem)
+* Slight increase in latency due to quorum-based writes
+* Not suitable for large-scale data storage
 
 ---
 
-# 👨‍💻 Autor
+## Testing
 
-* Emri: Brajan Xholaj
-* Projekti: Apache ZooKeeper Distributed Systems
+The system has been tested with:
+
+* Concurrent producers and consumers
+* Multiple clients competing for locks
+* Simulated node failures
+* Continuous monitoring of cluster state
 
 ---
 
-#  Statusi
+## Author
 
-✔ Core tasks të implementuara
-✔ Bonus tasks të implementuara
-✔ Testuar me multiple threads & failure scenarios
+Name: Brajan Xholaj
+Project: Apache ZooKeeper Distributed Systems
 
+---
+
+## Status
+
+All core components are implemented and functional.
+Bonus components (Group Messaging and System Recovery) are implemented and tested.
